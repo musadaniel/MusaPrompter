@@ -113,6 +113,7 @@
     <label>Font Size:
       <input type="number" id="fontSizeControl" value="5.5" step="0.1" min="0.5" max="10"> em
     </label>
+    <input type="file" id="fileInput" accept=".txt">
     <button id="loadAndStart">Load & Start</button>
     <button id="pause">Pause / Resume</button>
     <button id="stop">Stop</button>
@@ -139,7 +140,6 @@
     const textInput = document.getElementById("textInput");
     const textInputContainer = document.getElementById("textInputContainer");
     const timerDisplay = document.getElementById("timer");
-
     let intervalId, timerId;
     let position = 0;
     let secondsElapsed = 0;
@@ -272,6 +272,17 @@
         position += 40;
         prompterContent.style.transform = `translateY(-${position}px)`;
       }
+    });
+
+    document.getElementById("fileInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        textInput.value = e.target.result;
+        localStorage.setItem("teleprompter_text", textInput.value);
+      };
+      reader.readAsText(file);
     });
 
     loadFromStorage();
