@@ -133,9 +133,148 @@
     </div>
   </div>
 
-  <!-- JavaScript remains the same -->
   <script>
-    // (omitted here for brevity – sigue siendo el mismo y ya funciona correctamente)
+    const prompterContent = document.getElementById("prompterContent");
+    const prompterContentWrapper = document.getElementById("prompterContentWrapper");
+    const textInput = document.getElementById("textInput");
+    const textInputContainer = document.getElementById("textInputContainer");
+    const timerDisplay = document.getElementById("timer");
+
+    let intervalId, timerId;
+    let position = 0;
+    let secondsElapsed = 0;
+
+    function scrollText() {
+      prompterContent.style.transform = `translateY(-${position}px)`;
+      position += parseInt(document.getElementById("speed").value);
+    }
+
+    function startScroll() {
+      clearInterval(intervalId);
+      intervalId = setInterval(scrollText, 100);
+      timerId = setInterval(() => {
+        secondsElapsed++;
+        const minutes = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const seconds = String(secondsElapsed % 60).padStart(2, '0');
+        timerDisplay.textContent = `${minutes}:${seconds}`;
+      }, 1000);
+    }
+
+    function stopScroll() {
+      clearInterval(intervalId);
+      clearInterval(timerId);
+      intervalId = null;
+      timerId = null;
+    }
+
+    function resetTimer() {
+      secondsElapsed = 0;
+      timerDisplay.textContent = "00:00";
+    }
+
+    function loadFromStorage() {
+      const saved = localStorage.getItem("teleprompter_text");
+      if (saved) textInput.value = saved;
+    }
+
+    function saveToStorage() {
+      localStorage.setItem("teleprompter_text", textInput.value);
+    }
+
+    document.getElementById("loadAndStart").addEventListener("click", () => {
+      saveToStorage();
+      prompterContent.innerText = textInput.value || "(No script loaded)";
+      position = 0;
+      resetTimer();
+      prompterContent.style.transform = "translateY(0px)";
+      textInputContainer.classList.add("hidden");
+      startScroll();
+    });
+
+    document.getElementById("pause").addEventListener("click", () => {
+      if (intervalId) {
+        stopScroll();
+      } else {
+        startScroll();
+      }
+    });
+
+    document.getElementById("stop").addEventListener("click", () => {
+      stopScroll();
+      position = 0;
+      resetTimer();
+      prompterContent.style.transform = "translateY(0px)";
+      textInputContainer.classList.remove("hidden");
+    });
+
+    document.getElementById("restart").addEventListener("click", () => {
+      stopScroll();
+      position = 0;
+      resetTimer();
+      prompterContent.style.transform = "translateY(0px)";
+      startScroll();
+    });
+
+    document.getElementById("fullscreen").addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    document.getElementById("mirrorV").addEventListener("click", () => {
+      prompterContentWrapper.classList.toggle("mirrored-v");
+    });
+
+    document.getElementById("mirrorH").addEventListener("click", () => {
+      prompterContentWrapper.classList.toggle("mirrored-h");
+    });
+
+    document.getElementById("paddingXControl").addEventListener("input", e => {
+      document.documentElement.style.setProperty('--custom-padding-x', `${e.target.value}px`);
+    });
+
+    document.getElementById("lineHeightControl").addEventListener("input", e => {
+      document.documentElement.style.setProperty('--custom-line-height', e.target.value);
+    });
+
+    document.getElementById("textAlignControl").addEventListener("change", e => {
+      document.documentElement.style.setProperty('--custom-align', e.target.value);
+    });
+
+    document.getElementById("fontSizeControl").addEventListener("input", e => {
+      document.documentElement.style.setProperty('--custom-font-size', `${e.target.value}em`);
+    });
+
+    document.getElementById("prompterZone").addEventListener("wheel", e => {
+      e.preventDefault();
+      position -= e.deltaY;
+      if (position < 0) position = 0;
+      prompterContent.style.transform = `translateY(-${position}px)`;
+    }, { passive: false });
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (intervalId) {
+          stopScroll();
+        } else {
+          startScroll();
+        }
+      } else if (e.code === "ArrowUp") {
+        e.preventDefault();
+        position -= 40;
+        if (position < 0) position = 0;
+        prompterContent.style.transform = `translateY(-${position}px)`;
+      } else if (e.code === "ArrowDown") {
+        e.preventDefault();
+        position += 40;
+        prompterContent.style.transform = `translateY(-${position}px)`;
+      }
+    });
+
+    loadFromStorage();
   </script>
 </body>
 </html>
